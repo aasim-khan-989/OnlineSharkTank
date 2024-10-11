@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios'; // Import axios for making HTTP requests
 
-export const  CompleteProfile: React.FC<{ onAuthChange: (isAuthenticated: boolean, isProfileCompleted: boolean) => void }> = ({ onAuthChange }) => {
+export const CompleteProfile: React.FC<{ onAuthChange: (isAuthenticated: boolean, isProfileCompleted: boolean) => void }> = ({ onAuthChange }) => {
   const [name, setName] = useState('');
   const [yearOfPassing, setYearOfPassing] = useState('');
   const [description, setDescription] = useState('');
@@ -20,10 +21,15 @@ export const  CompleteProfile: React.FC<{ onAuthChange: (isAuthenticated: boolea
     }
 
     try {
-      // Here, you would typically send the data to your backend.
-      // Assuming we have an API endpoint for updating user profile
-      const response = await updateProfile({ name, yearOfPassing, description, aadharNumber });
-      console.log('Profile Updated:', response);
+      // Send the data to your backend API
+      const response = await axios.post('/api/profile', { // Update the URL based on your API structure
+        fullName: name,
+        yearOfPassing,
+        description,
+        aadharNumber,
+      });
+
+      console.log('Profile Updated:', response.data);
 
       // Update authentication state to indicate profile completion
       onAuthChange(true, true); // Set authenticated state and profile completed state
@@ -86,13 +92,3 @@ export const  CompleteProfile: React.FC<{ onAuthChange: (isAuthenticated: boolea
     </div>
   );
 };
-
-// Simulate an API call
-const updateProfile = async (data: { name: string; yearOfPassing: string; description: string; aadharNumber: string }) => {
-  // Simulate a successful API response after 2 seconds
-  return new Promise((resolve) => {
-    setTimeout(() => resolve({ success: true }), 2000);
-  });
-};
-
-

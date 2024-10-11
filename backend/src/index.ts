@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import cors from "cors" // Import CORS middleware
 import authRoutes from './routes/authRoutes';
 import prisma from './config/db';
+import profileRoutes from './routes/profileRoutes'; // Import profile routes
 
 dotenv.config();
 
@@ -28,6 +29,7 @@ prisma.$connect()
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/profile', profileRoutes); // Use profile routes
 
 // Start server
 app.listen(PORT, () => {
