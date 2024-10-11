@@ -1,12 +1,12 @@
-export const isAuthenticated=():boolean=>{
-    const token = localStorage.getItem("jwtToken");
-    return token ?true:true
-};
+import { useState } from "react";
+
+
 
 export const isProfileComplete = (): boolean => {
-    // return true
+    
+    return true
     // Retrieve from localStorage or backend if the profile is complete
-    return localStorage.getItem('profileCompleted') === 'true';
+    // return localStorage.getItem('profileCompleted') === 'true';
   };
 
  

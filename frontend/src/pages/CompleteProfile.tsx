@@ -1,121 +1,98 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-export const CompleteProfile = () => {
-  const [formData, setFormData] = useState({
-    fullName: '',
-    email: '',
-    userType: '', // Entrepreneur, Investor, or Visitor
-    aadhar: '',
-    gstNumber: '',
-    businessDescription: '',
-  });
+export const  CompleteProfile: React.FC<{ onAuthChange: (isAuthenticated: boolean, isProfileCompleted: boolean) => void }> = ({ onAuthChange }) => {
+  const [name, setName] = useState('');
+  const [yearOfPassing, setYearOfPassing] = useState('');
+  const [description, setDescription] = useState('');
+  const [aadharNumber, setAadharNumber] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Submit form logic here (e.g., send data to backend)
-    console.log(formData);
-    // Redirect to homepage after submission
+    setError(null);
+
+    // Validate fields
+    if (!name || !yearOfPassing || !description || !aadharNumber) {
+      setError('Please fill in all fields.');
+      return;
+    }
+
+    try {
+      // Here, you would typically send the data to your backend.
+      // Assuming we have an API endpoint for updating user profile
+      const response = await updateProfile({ name, yearOfPassing, description, aadharNumber });
+      console.log('Profile Updated:', response);
+
+      // Update authentication state to indicate profile completion
+      onAuthChange(true, true); // Set authenticated state and profile completed state
+      navigate('/home'); // Redirect to the home page after completing the profile
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Something went wrong.');
+    }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded shadow-md w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-4">Complete Your Profile</h2>
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label className="block text-gray-700">Full Name</label>
-            <input
-              type="text"
-              name="fullName"
-              value={formData.fullName}
-              onChange={handleInputChange}
-              className="mt-1 p-2 border w-full rounded"
-              required
-            />
-          </div>
+    <div className="flex flex-col items-center justify-center min-h-screen">
+      <h1 className="text-2xl font-bold mb-4">Complete Your Profile</h1>
+      <form onSubmit={handleSubmit} className="bg-white shadow-md rounded-lg p-6 w-11/12 max-w-md">
+        <div className="mb-4">
+          <label className="block text-gray-700 mb-2">Name</label>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full px-3 py-2 border rounded"
+            required
+          />
+        </div>
 
-          <div className="mb-4">
-            <label className="block text-gray-700">Email</label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleInputChange}
-              className="mt-1 p-2 border w-full rounded"
-              required
-            />
-          </div>
+        <div className="mb-4">
+          <label className="block text-gray-700 mb-2">Year of Passing</label>
+          <input
+            type="text"
+            value={yearOfPassing}
+            onChange={(e) => setYearOfPassing(e.target.value)}
+            className="w-full px-3 py-2 border rounded"
+            required
+          />
+        </div>
 
-          {/* User Type (Entrepreneur, Investor, Visitor) */}
-          <div className="mb-4">
-            <label className="block text-gray-700">User Type</label>
-            <select
-              name="userType"
-              value={formData.userType}
-              onChange={handleInputChange}
-              className="mt-1 p-2 border w-full rounded"
-              required
-            >
-              <option value="">Select user type</option>
-              <option value="entrepreneur">Entrepreneur</option>
-              <option value="investor">Investor</option>
-              <option value="visitor">Visitor</option>
-            </select>
-          </div>
+        <div className="mb-4">
+          <label className="block text-gray-700 mb-2">Description</label>
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="w-full px-3 py-2 border rounded"
+            required
+          ></textarea>
+        </div>
 
-          {/* Conditional fields based on userType */}
-          {formData.userType === 'entrepreneur' && (
-            <>
-              <div className="mb-4">
-                <label className="block text-gray-700">Aadhar Number</label>
-                <input
-                  type="text"
-                  name="aadhar"
-                  value={formData.aadhar}
-                  onChange={handleInputChange}
-                  className="mt-1 p-2 border w-full rounded"
-                  required
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700">GST Number</label>
-                <input
-                  type="text"
-                  name="gstNumber"
-                  value={formData.gstNumber}
-                  onChange={handleInputChange}
-                  className="mt-1 p-2 border w-full rounded"
-                  required
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700">Business Description</label>
-                <textarea
-                  name="businessDescription"
-                  value={formData.businessDescription}
-                  onChange={handleInputChange}
-                  className="mt-1 p-2 border w-full rounded"
-                  required
-                />
-              </div>
-            </>
-          )}
+        <div className="mb-4">
+          <label className="block text-gray-700 mb-2">Aadhar Number</label>
+          <input
+            type="text"
+            value={aadharNumber}
+            onChange={(e) => setAadharNumber(e.target.value)}
+            className="w-full px-3 py-2 border rounded"
+            required
+          />
+        </div>
 
-          <button
-            type="submit"
-            className="bg-blue-500 text-white p-2 rounded w-full mt-4"
-          >
-            Complete Profile
-          </button>
-        </form>
-      </div>
+        {error && <p className="text-red-500">{error}</p>}
+        <button type="submit" className="w-full py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Complete Profile</button>
+      </form>
     </div>
   );
+};
+
+// Simulate an API call
+const updateProfile = async (data: { name: string; yearOfPassing: string; description: string; aadharNumber: string }) => {
+  // Simulate a successful API response after 2 seconds
+  return new Promise((resolve) => {
+    setTimeout(() => resolve({ success: true }), 2000);
+  });
 };
 
 
