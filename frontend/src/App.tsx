@@ -6,8 +6,9 @@ import { FeedPage } from "./pages/FeedPage";
 import { Profile } from "./pages/Profile";
 import { Message } from "./pages/Message";
 import { useState, useEffect } from "react";
-import { jwtDecode }from "jwt-decode"; // Ensure you install jwt-decode
+import { jwtDecode } from "jwt-decode"; // Ensure you install jwt-decode
 import axios from "axios";
+import Navbar from "./components/Navbar"; // Import the Navbar component
 
 const API = import.meta.env.VITE_API_URL;
 
@@ -20,35 +21,39 @@ function App() {
   const [authenticated, setAuthenticated] = useState<boolean>(false);
   const [profileCompleted, setProfileCompleted] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
+  const [showDropdown, setShowDropdown] = useState<boolean>(false); // New state for dropdown
+
+  // Toggles the dropdown visibility
+  const toggleDropdown = () => {
+    setShowDropdown(!showDropdown);
+  };
 
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
-    setToken(storedToken); // Set the token state based on localStorage
-    setAuthenticated(!!storedToken); // Update authenticated state
+    setToken(storedToken);
+    setAuthenticated(!!storedToken);
 
     if (storedToken) {
       try {
         const decodedToken = jwtDecode<TokenPayload>(storedToken);
         const userId = decodedToken.id;
-        console.log('User ID:', userId);
 
-        // Check profile completion using axios
-        axios.get(`${API}/api/profile/profile-completion-status/${userId}`)
+        axios
+          .get(`${API}/api/profile/profile-completion-status/${userId}`)
           .then((response) => {
-            const isComplete = response.data.isProfileCompleted;
-            setProfileCompleted(isComplete);
-            setLoading(false); // Set loading to false once the check is complete
+            setProfileCompleted(response.data.isProfileCompleted);
+            setLoading(false);
           })
           .catch((error) => {
-            console.error('Error fetching profile completion status:', error);
-            setLoading(false); // Set loading to false on error
+            console.error("Error fetching profile completion status:", error);
+            setLoading(false);
           });
       } catch (error) {
-        console.error('Error decoding token:', error);
-        setLoading(false); // Set loading to false if there's an error in decoding
+        console.error("Error decoding token:", error);
+        setLoading(false);
       }
     } else {
-      setLoading(false); // Set loading to false if no token found
+      setLoading(false);
     }
   }, []);
 
@@ -61,24 +66,37 @@ function App() {
     }
   };
 
+  const onLogout = () => {
+    localStorage.removeItem("token");
+    setAuthenticated(false);
+    setProfileCompleted(false);
+    setToken(null);
+  };
+
   if (loading) {
-    return <div>Loading...</div>; // Display a loading message or spinner while checking the profile completion
+    return <div>Loading...</div>;
   }
 
   return (
     <BrowserRouter>
+      {/* Conditionally render Navbar only if authenticated */}
+      {authenticated && (
+        <Navbar toggleDropdown={toggleDropdown} showDropdown={showDropdown} onLogout={onLogout} />
+      )}
       <Routes>
         <Route
           path="/"
-          element={authenticated ? (
-            profileCompleted ? (
-              <Navigate to="/home" />
+          element={
+            authenticated ? (
+              profileCompleted ? (
+                <Navigate to="/home" />
+              ) : (
+                <Navigate to="/complete-profile" />
+              )
             ) : (
-              <Navigate to="/complete-profile" />
+              <Landing onAuthChange={handleAuthChange} />
             )
-          ) : (
-            <Landing onAuthChange={handleAuthChange} />
-          )}
+          }
         />
 
         <Route
@@ -108,7 +126,6 @@ function App() {
           <Route path="messages" element={<Message />} />
         </Route>
 
-        {/* Redirect to home if route doesn't match */}
         <Route path="*" element={<Navigate to={authenticated ? "/home" : "/"} />} />
       </Routes>
     </BrowserRouter>

@@ -166,7 +166,7 @@ export const CompleteProfile: React.FC<{ onAuthChange: (isAuthenticated: boolean
         </div>
 
         <div className="mb-1">
-          <label className="block text-gray-700 text-xs mb-0.5">Aadhar Number (Optional)</label>
+          <label className="block text-gray-700 text-xs mb-0.5">Aadhar Number *</label>
           <input
             type="text"
             value={aadharNumber}
