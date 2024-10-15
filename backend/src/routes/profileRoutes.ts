@@ -4,7 +4,6 @@ import prisma from '../config/db';
 
 const router = express.Router();
 
-// Define the expected shape of the profile data in the request body
 interface CompleteProfileBody {
   fullName: string;
   age?: number;
@@ -20,17 +19,37 @@ interface CompleteProfileBody {
   userId: number;
 }
 
+// Get Profile Completion Status
+router.get('/profile-completion-status/:userId', async (req: Request, res: Response) => {
+  const userId = parseInt(req.params.userId);
+
+  try {
+    const profile = await prisma.profile.findUnique({
+      where: { userId },
+    });
+
+    if (!profile) {
+      return res.status(404).json({ isProfileCompleted: false, message: 'Profile not found' });
+    }
+
+    res.json({ isProfileCompleted: profile.isProfileCompleted });
+  } catch (error) {
+    console.error('Error fetching profile completion status:', error);
+    res.status(500).json({ error: 'Failed to fetch profile completion status' });
+  }
+});
+
 // Create or update profile
 router.post(
   '/complete-profile',
   [
-    body('fullName').notEmpty().withMessage('Full name is required'),
+    body('fullName').trim().notEmpty().withMessage('Full name is required'), // Trim whitespace and ensure fullName is not empty
     body('age').optional().isNumeric().withMessage('Age must be a number'),
     body('dateOfBirth').optional().isDate().withMessage('Invalid date format'),
     body('aadharNumber')
       .optional()
       .isLength({ min: 12, max: 12 })
-      .withMessage('Aadhar number must be 12 digits'),
+      .withMessage('Aadhar number must be exactly 12 digits'),
   ],
   async (req: Request<{}, {}, CompleteProfileBody>, res: Response) => {
     const errors = validationResult(req);
@@ -54,7 +73,7 @@ router.post(
     } = req.body;
 
     try {
-      // Upsert (create or update) the profile
+      // Upsert the profile (create or update)
       const profile = await prisma.profile.upsert({
         where: { userId: userId },
         update: {
@@ -89,9 +108,15 @@ router.post(
       });
 
       res.json({ profile, message: 'Profile completed successfully' });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Failed to complete the profile' });
+    } catch (error: any) {
+      console.error('Error completing profile:', error);
+
+      // Handle Prisma-specific errors
+      if (error.code === 'P2002') { // Prisma unique constraint error
+        res.status(409).json({ error: 'A profile with this Aadhar number already exists.' });
+      } else {
+        res.status(500).json({ error: 'Failed to complete the profile' });
+      }
     }
   }
 );

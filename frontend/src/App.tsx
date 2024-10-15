@@ -6,35 +6,64 @@ import { FeedPage } from "./pages/FeedPage";
 import { Profile } from "./pages/Profile";
 import { Message } from "./pages/Message";
 import { useState, useEffect } from "react";
+import { jwtDecode }from "jwt-decode"; // Ensure you install jwt-decode
+import axios from "axios";
+
+const API = import.meta.env.VITE_API_URL;
+
+interface TokenPayload {
+  id: number; // Adjust this based on your JWT payload structure
+}
 
 function App() {
   const [token, setToken] = useState<string | null>(null);
   const [authenticated, setAuthenticated] = useState<boolean>(false);
   const [profileCompleted, setProfileCompleted] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
     setToken(storedToken); // Set the token state based on localStorage
     setAuthenticated(!!storedToken); // Update authenticated state
+
     if (storedToken) {
-      setProfileCompleted(isProfileComplete()); // Check if the profile is complete
+      try {
+        const decodedToken = jwtDecode<TokenPayload>(storedToken);
+        const userId = decodedToken.id;
+        console.log('User ID:', userId);
+
+        // Check profile completion using axios
+        axios.get(`${API}/api/profile/profile-completion-status/${userId}`)
+          .then((response) => {
+            const isComplete = response.data.isProfileCompleted;
+            setProfileCompleted(isComplete);
+            setLoading(false); // Set loading to false once the check is complete
+          })
+          .catch((error) => {
+            console.error('Error fetching profile completion status:', error);
+            setLoading(false); // Set loading to false on error
+          });
+      } catch (error) {
+        console.error('Error decoding token:', error);
+        setLoading(false); // Set loading to false if there's an error in decoding
+      }
+    } else {
+      setLoading(false); // Set loading to false if no token found
     }
   }, []);
-
-  const isProfileComplete = (): boolean => {
-    // Replace this with your actual logic to check if the profile is complete
-    return false; // Change to true when the profile is complete
-  };
 
   const handleAuthChange = (isAuthenticated: boolean, isProfileCompleted: boolean) => {
     setAuthenticated(isAuthenticated);
     setProfileCompleted(isProfileCompleted);
     if (isAuthenticated) {
-      // If authenticated, set the token in local storage
       const storedToken = localStorage.getItem("token");
       setToken(storedToken);
     }
   };
+
+  if (loading) {
+    return <div>Loading...</div>; // Display a loading message or spinner while checking the profile completion
+  }
 
   return (
     <BrowserRouter>
@@ -56,7 +85,7 @@ function App() {
           path="/complete-profile"
           element={
             authenticated && !profileCompleted ? (
-              <CompleteProfile onAuthChange={handleAuthChange} isProfile />
+              <CompleteProfile onAuthChange={handleAuthChange} />
             ) : (
               <Navigate to={authenticated ? "/home" : "/"} />
             )

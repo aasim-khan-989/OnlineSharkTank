@@ -12,10 +12,28 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+// Import necessary packages
 const express_1 = __importDefault(require("express"));
 const express_validator_1 = require("express-validator");
 const db_1 = __importDefault(require("../config/db"));
 const router = express_1.default.Router();
+// Get Profile Completion Status
+router.get('/profile-completion-status/:userId', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const userId = parseInt(req.params.userId); // Get userId from the request parameters
+    try {
+        const profile = yield db_1.default.profile.findUnique({
+            where: { userId },
+        });
+        if (!profile) {
+            return res.status(404).json({ isProfileCompleted: false }); // Profile not found, return false
+        }
+        res.json({ isProfileCompleted: profile.isProfileCompleted }); // Return profile completion status
+    }
+    catch (error) {
+        console.error('Error fetching profile completion status:', error);
+        res.status(500).json({ error: 'Failed to fetch profile completion status' });
+    }
+}));
 // Create or update profile
 router.post('/complete-profile', [
     (0, express_validator_1.body)('fullName').notEmpty().withMessage('Full name is required'),

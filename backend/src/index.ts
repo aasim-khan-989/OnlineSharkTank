@@ -1,21 +1,22 @@
 import express from 'express';
 import dotenv from 'dotenv';
-import cors from "cors" // Import CORS middleware
+import cors from 'cors';
 import authRoutes from './routes/authRoutes';
 import prisma from './config/db';
-import profileRoutes from './routes/profileRoutes'; // Import profile routes
+import profileRoutes from './routes/profileRoutes'; 
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Enable CORS for all origins
-app.use(cors({
-  origin: '*', // Allow all origins
-  credentials: true // Enable credentials if needed
-}));
+// Enable CORS for specific origins
+const corsOptions = {
+  origin: process.env.FRONTEND_URL || '*', // Adjust this in production
+  credentials: true
+};
 
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Test the database connection
@@ -29,7 +30,7 @@ prisma.$connect()
 
 // Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/profile', profileRoutes); // Use profile routes
+app.use('/api/profile', profileRoutes);
 
 // Start server
 app.listen(PORT, () => {
