@@ -46,7 +46,7 @@ export const CompleteProfile: React.FC<{ onAuthChange: (isAuthenticated: boolean
       if (contactNumber) payload.contactNumber = contactNumber;
       if (location) payload.location = location;
       if (profilePictureUrl) payload.profilePictureUrl = profilePictureUrl;
-      if (socialLinks) payload.socialLinks = JSON.parse(socialLinks);
+      if (socialLinks) payload.socialLinks = socialLinks;
 
       // Send the data to your backend API
       const response = await axios.post(`${API}/api/profile/complete-profile`, payload);
@@ -157,7 +157,7 @@ export const CompleteProfile: React.FC<{ onAuthChange: (isAuthenticated: boolean
         </div>
 
         <div className="mb-1">
-          <label className="block text-gray-700 text-xs mb-0.5">Social Links (JSON)</label>
+          <label className="block text-gray-700 text-xs mb-0.5">Linkedin URL</label>
           <textarea
             value={socialLinks}
             onChange={(e) => setSocialLinks(e.target.value)}

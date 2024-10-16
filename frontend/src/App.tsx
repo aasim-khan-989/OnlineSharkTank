@@ -18,11 +18,13 @@ interface TokenPayload {
 
 function App() {
   const [token, setToken] = useState<string | null>(null);
+  const [userId, setUserId] = useState<number | null>(null); // State for userId
   const [authenticated, setAuthenticated] = useState<boolean>(false);
   const [profileCompleted, setProfileCompleted] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
   const [showDropdown, setShowDropdown] = useState<boolean>(false); // New state for dropdown
   const [profilePictureUrl, setProfileImageUrl] = useState<string | null>(null);
+  
   // Toggles the dropdown visibility
   const toggleDropdown = () => {
     setShowDropdown(!showDropdown);
@@ -36,16 +38,15 @@ function App() {
     if (storedToken) {
       try {
         const decodedToken = jwtDecode<TokenPayload>(storedToken);
-        const userId = decodedToken.id;
-        console.log(userId)
+        const userIdFromToken = decodedToken.id; // Get userId from decoded token
+        setUserId(userIdFromToken); // Set userId state
+        console.log(userIdFromToken);
 
         axios
-          .get(`${API}/api/profile/profile-completion-status/${userId}`)
+          .get(`${API}/api/profile/profile-completion-status/${userIdFromToken}`)
           .then((response) => {
             setProfileCompleted(response.data.isProfileCompleted);
-            setProfileImageUrl(response.data.profilePictureUrl); 
-            // Set the profile image URL here
-            console.log(profilePictureUrl);
+            setProfileImageUrl(response.data.profilePictureUrl);
             setLoading(false);
           })
           .catch((error) => {
@@ -75,6 +76,7 @@ function App() {
     setAuthenticated(false);
     setProfileCompleted(false);
     setToken(null);
+    setUserId(null); // Reset userId on logout
   };
 
   if (loading) {
@@ -85,7 +87,7 @@ function App() {
     <BrowserRouter>
       {/* Conditionally render Navbar only if authenticated */}
       {authenticated && (
-        <Navbar toggleDropdown={toggleDropdown} showDropdown={showDropdown} onLogout={onLogout} profilePictureUrl= {profilePictureUrl}/>
+        <Navbar toggleDropdown={toggleDropdown} showDropdown={showDropdown} onLogout={onLogout} profilePictureUrl={profilePictureUrl} />
       )}
       <Routes>
         <Route
@@ -114,19 +116,25 @@ function App() {
           }
         />
 
-        <Route
-          path="/home"
-          element={
-            authenticated && profileCompleted ? (
-              <Home />
-            ) : (
-              <Navigate to="/" />
-            )
-          }
-        >
+        <Route path="/home" element={
+          authenticated && profileCompleted ? (
+            <Home />
+          ) : (
+            <Navigate to="/" />
+          )
+        }>
           <Route index element={<FeedPage />} />
           <Route path="feed" element={<FeedPage />} />
-          <Route path="profile" element={<Profile />} />
+          <Route
+            path="profile"
+            element={
+              authenticated && profileCompleted ? (
+                <Profile userId={userId} profilePictureUrl={profilePictureUrl} /> // Pass userId here
+              ) : (
+                <Navigate to="/" />
+              )
+            }
+          />
           <Route path="messages" element={<Message />} />
         </Route>
 
