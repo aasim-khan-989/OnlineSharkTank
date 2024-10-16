@@ -19,20 +19,31 @@ interface CompleteProfileBody {
   userId: number;
 }
 
-// Get Profile Completion Status
+// Get Profile Completion Status and Profile Image URL
 router.get('/profile-completion-status/:userId', async (req: Request, res: Response) => {
   const userId = parseInt(req.params.userId);
 
   try {
     const profile = await prisma.profile.findUnique({
       where: { userId },
+      select: {
+        isProfileCompleted: true,
+        profilePictureUrl: true,
+      },
     });
 
     if (!profile) {
-      return res.status(404).json({ isProfileCompleted: false, message: 'Profile not found' });
+      return res.status(404).json({ 
+        isProfileCompleted: false, 
+        profileImageUrl: null, 
+        message: 'Profile not found' 
+      });
     }
 
-    res.json({ isProfileCompleted: profile.isProfileCompleted });
+    res.json({
+      isProfileCompleted: profile.isProfileCompleted,
+      profilePictureUrl: profile.profilePictureUrl,
+    });
   } catch (error) {
     console.error('Error fetching profile completion status:', error);
     res.status(500).json({ error: 'Failed to fetch profile completion status' });
@@ -43,13 +54,10 @@ router.get('/profile-completion-status/:userId', async (req: Request, res: Respo
 router.post(
   '/complete-profile',
   [
-    body('fullName').trim().notEmpty().withMessage('Full name is required'), // Trim whitespace and ensure fullName is not empty
+    body('fullName').trim().notEmpty().withMessage('Full name is required'),
     body('age').optional().isNumeric().withMessage('Age must be a number'),
     body('dateOfBirth').optional().isDate().withMessage('Invalid date format'),
-    body('aadharNumber')
-      .optional()
-      .isLength({ min: 12, max: 12 })
-      .withMessage('Aadhar number must be exactly 12 digits'),
+    body('aadharNumber').optional().isString().withMessage('Aadhar number must be a string'),
   ],
   async (req: Request<{}, {}, CompleteProfileBody>, res: Response) => {
     const errors = validationResult(req);
@@ -73,7 +81,6 @@ router.post(
     } = req.body;
 
     try {
-      // Upsert the profile (create or update)
       const profile = await prisma.profile.upsert({
         where: { userId: userId },
         update: {
@@ -87,7 +94,7 @@ router.post(
           location,
           profilePictureUrl,
           socialLinks: socialLinks ? JSON.parse(socialLinks) : null,
-          aadharNumber,
+          aadharNumber: aadharNumber ?? "",
           isProfileCompleted: true,
         },
         create: {
@@ -102,7 +109,7 @@ router.post(
           location,
           profilePictureUrl,
           socialLinks: socialLinks ? JSON.parse(socialLinks) : null,
-          aadharNumber,
+          aadharNumber: aadharNumber ?? "",
           isProfileCompleted: true,
         },
       });
@@ -111,8 +118,7 @@ router.post(
     } catch (error: any) {
       console.error('Error completing profile:', error);
 
-      // Handle Prisma-specific errors
-      if (error.code === 'P2002') { // Prisma unique constraint error
+      if (error.code === 'P2002') {
         res.status(409).json({ error: 'A profile with this Aadhar number already exists.' });
       } else {
         res.status(500).json({ error: 'Failed to complete the profile' });

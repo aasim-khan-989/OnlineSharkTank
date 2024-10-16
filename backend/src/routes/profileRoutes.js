@@ -12,22 +12,32 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-// Import necessary packages
 const express_1 = __importDefault(require("express"));
 const express_validator_1 = require("express-validator");
 const db_1 = __importDefault(require("../config/db"));
 const router = express_1.default.Router();
-// Get Profile Completion Status
+// Get Profile Completion Status and Profile Image URL
 router.get('/profile-completion-status/:userId', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const userId = parseInt(req.params.userId); // Get userId from the request parameters
+    const userId = parseInt(req.params.userId);
     try {
         const profile = yield db_1.default.profile.findUnique({
             where: { userId },
+            select: {
+                isProfileCompleted: true,
+                profilePictureUrl: true,
+            },
         });
         if (!profile) {
-            return res.status(404).json({ isProfileCompleted: false }); // Profile not found, return false
+            return res.status(404).json({
+                isProfileCompleted: false,
+                profileImageUrl: null,
+                message: 'Profile not found'
+            });
         }
-        res.json({ isProfileCompleted: profile.isProfileCompleted }); // Return profile completion status
+        res.json({
+            isProfileCompleted: profile.isProfileCompleted,
+            profilePictureUrl: profile.profilePictureUrl,
+        });
     }
     catch (error) {
         console.error('Error fetching profile completion status:', error);
@@ -36,13 +46,10 @@ router.get('/profile-completion-status/:userId', (req, res) => __awaiter(void 0,
 }));
 // Create or update profile
 router.post('/complete-profile', [
-    (0, express_validator_1.body)('fullName').notEmpty().withMessage('Full name is required'),
+    (0, express_validator_1.body)('fullName').trim().notEmpty().withMessage('Full name is required'),
     (0, express_validator_1.body)('age').optional().isNumeric().withMessage('Age must be a number'),
     (0, express_validator_1.body)('dateOfBirth').optional().isDate().withMessage('Invalid date format'),
-    (0, express_validator_1.body)('aadharNumber')
-        .optional()
-        .isLength({ min: 12, max: 12 })
-        .withMessage('Aadhar number must be 12 digits'),
+    (0, express_validator_1.body)('aadharNumber').optional().isString().withMessage('Aadhar number must be a string'),
 ], (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const errors = (0, express_validator_1.validationResult)(req);
     if (!errors.isEmpty()) {
@@ -50,7 +57,6 @@ router.post('/complete-profile', [
     }
     const { fullName, age, dateOfBirth, description, businessCategory, investmentCategory, contactNumber, location, profilePictureUrl, socialLinks, aadharNumber, userId, } = req.body;
     try {
-        // Upsert (create or update) the profile
         const profile = yield db_1.default.profile.upsert({
             where: { userId: userId },
             update: {
@@ -64,7 +70,7 @@ router.post('/complete-profile', [
                 location,
                 profilePictureUrl,
                 socialLinks: socialLinks ? JSON.parse(socialLinks) : null,
-                aadharNumber,
+                aadharNumber: aadharNumber !== null && aadharNumber !== void 0 ? aadharNumber : "",
                 isProfileCompleted: true,
             },
             create: {
@@ -79,15 +85,20 @@ router.post('/complete-profile', [
                 location,
                 profilePictureUrl,
                 socialLinks: socialLinks ? JSON.parse(socialLinks) : null,
-                aadharNumber,
+                aadharNumber: aadharNumber !== null && aadharNumber !== void 0 ? aadharNumber : "",
                 isProfileCompleted: true,
             },
         });
         res.json({ profile, message: 'Profile completed successfully' });
     }
     catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Failed to complete the profile' });
+        console.error('Error completing profile:', error);
+        if (error.code === 'P2002') {
+            res.status(409).json({ error: 'A profile with this Aadhar number already exists.' });
+        }
+        else {
+            res.status(500).json({ error: 'Failed to complete the profile' });
+        }
     }
 }));
 exports.default = router;

@@ -22,7 +22,7 @@ function App() {
   const [profileCompleted, setProfileCompleted] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
   const [showDropdown, setShowDropdown] = useState<boolean>(false); // New state for dropdown
-
+  const [profilePictureUrl, setProfileImageUrl] = useState<string | null>(null);
   // Toggles the dropdown visibility
   const toggleDropdown = () => {
     setShowDropdown(!showDropdown);
@@ -37,11 +37,15 @@ function App() {
       try {
         const decodedToken = jwtDecode<TokenPayload>(storedToken);
         const userId = decodedToken.id;
+        console.log(userId)
 
         axios
           .get(`${API}/api/profile/profile-completion-status/${userId}`)
           .then((response) => {
             setProfileCompleted(response.data.isProfileCompleted);
+            setProfileImageUrl(response.data.profilePictureUrl); 
+            // Set the profile image URL here
+            console.log(profilePictureUrl);
             setLoading(false);
           })
           .catch((error) => {
@@ -81,7 +85,7 @@ function App() {
     <BrowserRouter>
       {/* Conditionally render Navbar only if authenticated */}
       {authenticated && (
-        <Navbar toggleDropdown={toggleDropdown} showDropdown={showDropdown} onLogout={onLogout} />
+        <Navbar toggleDropdown={toggleDropdown} showDropdown={showDropdown} onLogout={onLogout} profilePictureUrl= {profilePictureUrl}/>
       )}
       <Routes>
         <Route
