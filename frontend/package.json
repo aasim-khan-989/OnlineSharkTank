@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@headlessui/react": "^2.1.10",
     "@types/react-router-dom": "^5.3.3",
     "animate.css": "^4.1.1",
     "axios": "^1.7.7",
@@ -17,7 +18,7 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.26.2",
-    "types": "file:../../../../../jwt-decode"
+    "types": "file:../../../../../headlessui/react"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.0",

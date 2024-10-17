@@ -67,7 +67,7 @@ export function Profile({ userId }: ProfileProps): JSX.Element {
         </div>
 
         {showUploadComponent ? (
-          <UploadAPost userId={userId} onPostUploaded={() => setShowUploadComponent(false)} />
+          <UploadAPost userId={userId} />
         ) : (
           <ViewYourFeed userId={userId} />
         )}

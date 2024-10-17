@@ -129,7 +129,7 @@ function App() {
             path="profile"
             element={
               authenticated && profileCompleted ? (
-                <Profile userId={userId} profilePictureUrl={profilePictureUrl} /> // Pass userId here
+                <Profile userId={userId}  /> // Pass userId here
               ) : (
                 <Navigate to="/" />
               )

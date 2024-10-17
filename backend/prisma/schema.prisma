@@ -10,7 +10,7 @@ generator client {
 model User {
   id       Int      @id @default(autoincrement()) // Auto-incrementing integer ID for User
   email    String   @unique
-  username String?  // Optional field for username
+  username String?  @unique  // Optional field for username with unique constraint
 
   password String
   profile  Profile?
@@ -20,6 +20,7 @@ model User {
 
   @@map("users")
 }
+
 
 model Profile {
   profileId          Int      @id @default(autoincrement()) // Auto-incrementing integer profileId

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 
-export const UploadAPost: React.FC<{ userId: number }> = ({ userId }) => {
+export const UploadAPost: React.FC<{ userId: number | null }> = ({ userId }) => {
   const [videoUrl, setVideoUrl] = useState("");
   const [content, setContent] = useState("");
   const [isPrivate, setIsPrivate] = useState(false);

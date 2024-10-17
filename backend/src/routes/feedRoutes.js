@@ -54,18 +54,52 @@ router.post('/:id/dislike', (req, res) => __awaiter(void 0, void 0, void 0, func
     }
 }));
 // Get all public feeds (excluding private ones)
+// Get all public feeds (excluding private ones)
 router.get('/all', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        // Fetch all feeds where isPrivate is false
+        // Fetch all public feeds with the associated user data, ordered by number of likes
         const publicFeeds = yield db_1.default.feed.findMany({
             where: { isPrivate: false },
-            orderBy: { createdAt: 'desc' }, // Optional: order feeds by creation date
+            orderBy: { likes: 'desc' }, // Order feeds by number of likes in descending order
+            include: {
+                user: {
+                    select: {
+                        username: true, // Fetch only the unique username (corrected field name)
+                    },
+                },
+            },
         });
         res.json(publicFeeds);
     }
     catch (error) {
         console.error('Error fetching all public feeds:', error);
         res.status(500).json({ error: 'Failed to fetch public feeds' });
+    }
+}));
+router.put('/update/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id } = req.params;
+    const { content } = req.body;
+    try {
+        const updatedFeed = yield db_1.default.feed.update({
+            where: { id: Number(id) },
+            data: { content },
+        });
+        res.json(updatedFeed);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Error updating feed' });
+    }
+}));
+router.delete('/delete/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id } = req.params;
+    try {
+        yield db_1.default.feed.delete({
+            where: { id: Number(id) },
+        });
+        res.status(204).send(); // No Content
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Error deleting feed' });
     }
 }));
 // Export the router
