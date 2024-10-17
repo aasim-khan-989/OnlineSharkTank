@@ -53,5 +53,20 @@ router.post('/:id/dislike', (req, res) => __awaiter(void 0, void 0, void 0, func
         res.status(500).json({ error: 'Failed to dislike the feed' });
     }
 }));
+// Get all public feeds (excluding private ones)
+router.get('/all', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        // Fetch all feeds where isPrivate is false
+        const publicFeeds = yield db_1.default.feed.findMany({
+            where: { isPrivate: false },
+            orderBy: { createdAt: 'desc' }, // Optional: order feeds by creation date
+        });
+        res.json(publicFeeds);
+    }
+    catch (error) {
+        console.error('Error fetching all public feeds:', error);
+        res.status(500).json({ error: 'Failed to fetch public feeds' });
+    }
+}));
 // Export the router
 exports.default = router;
