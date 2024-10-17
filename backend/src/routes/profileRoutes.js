@@ -156,8 +156,11 @@ router.get('/my-feeds/:userId', (req, res) => __awaiter(void 0, void 0, void 0, 
                 userId,
             },
             select: {
-                content: true,
+                id: true,
+                content: true, // Include the content
                 videoUrl: true,
+                likes: true, // Include likes
+                dislikes: true, // Include dislikes
                 isPrivate: false,
             },
         });

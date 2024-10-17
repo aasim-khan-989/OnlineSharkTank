@@ -188,8 +188,11 @@ router.get('/my-feeds/:userId', async (req: Request, res: Response) => {
         userId,
       },
       select: {
-        content: true,
+        id:true,
+        content: true, // Include the content
         videoUrl: true,
+        likes: true, // Include likes
+        dislikes: true, // Include dislikes
         isPrivate: false,
       },
     });
@@ -200,6 +203,8 @@ router.get('/my-feeds/:userId', async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Failed to fetch user feeds' });
   }
 });
+
+
 
 // Update profile name
 router.put('/update-name', [
@@ -285,6 +290,9 @@ router.post(
     }
   }
 );
+
+
+
 
 // Export the router
 export default router;

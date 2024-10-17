@@ -1,6 +1,5 @@
 // src/pages/Profile.tsx
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import defaultProfileIcon from "./profile.png"; // Import default profile icon
 import { ViewYourFeed } from "../components/ViewYourFeed";

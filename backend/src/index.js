@@ -9,6 +9,7 @@ const cors_1 = __importDefault(require("cors"));
 const authRoutes_1 = __importDefault(require("./routes/authRoutes"));
 const db_1 = __importDefault(require("./config/db"));
 const profileRoutes_1 = __importDefault(require("./routes/profileRoutes"));
+const feedRoutes_1 = __importDefault(require("./routes/feedRoutes"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 5000;
@@ -30,6 +31,7 @@ db_1.default.$connect()
 // Routes
 app.use('/api/auth', authRoutes_1.default);
 app.use('/api/profile', profileRoutes_1.default);
+app.use("/api/feed", feedRoutes_1.default);
 // Start server
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
