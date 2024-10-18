@@ -9,6 +9,7 @@ import { useState, useEffect } from "react";
 import { jwtDecode } from "jwt-decode"; // Ensure you install jwt-decode
 import axios from "axios";
 import Navbar from "./components/Navbar"; // Import the Navbar component
+import {UserProfile} from "./pages/UserProfile";
 
 const API = import.meta.env.VITE_API_URL;
 
@@ -24,7 +25,7 @@ function App() {
   const [loading, setLoading] = useState<boolean>(true);
   const [showDropdown, setShowDropdown] = useState<boolean>(false); // New state for dropdown
   const [profilePictureUrl, setProfileImageUrl] = useState<string | null>(null);
-  
+
   // Toggles the dropdown visibility
   const toggleDropdown = () => {
     setShowDropdown(!showDropdown);
@@ -85,9 +86,13 @@ function App() {
 
   return (
     <BrowserRouter>
-      {/* Conditionally render Navbar only if authenticated */}
       {authenticated && (
-        <Navbar toggleDropdown={toggleDropdown} showDropdown={showDropdown} onLogout={onLogout} profilePictureUrl={profilePictureUrl} />
+        <Navbar
+          toggleDropdown={toggleDropdown}
+          showDropdown={showDropdown}
+          onLogout={onLogout}
+          profilePictureUrl={profilePictureUrl}
+        />
       )}
       <Routes>
         <Route
@@ -116,31 +121,29 @@ function App() {
           }
         />
 
-        <Route path="/home" element={
-          authenticated && profileCompleted ? (
-            <Home />
-          ) : (
-            <Navigate to="/" />
-          )
-        }>
+        <Route path="/home" element={authenticated && profileCompleted ? <Home /> : <Navigate to="/" />}>
           <Route index element={<FeedPage />} />
           <Route path="feed" element={<FeedPage />} />
-          <Route
-            path="profile"
-            element={
-              authenticated && profileCompleted ? (
-                <Profile userId={userId}  /> // Pass userId here
-              ) : (
-                <Navigate to="/" />
-              )
-            }
-          />
+          <Route path="profile" element={authenticated && profileCompleted ? <Profile userId={userId} /> : <Navigate to="/" />} />
           <Route path="messages" element={<Message />} />
         </Route>
+
+        {/* New Route for Viewing Another User's Profile */}
+        <Route
+          path="/user/:userId"
+          element={
+            authenticated ? (
+              <UserProfile/>  // Pass userId via the dynamic route
+            ) : (
+              <Navigate to="/" />
+            )
+          }
+        />
 
         <Route path="*" element={<Navigate to={authenticated ? "/home" : "/"} />} />
       </Routes>
     </BrowserRouter>
+
   );
 }
 

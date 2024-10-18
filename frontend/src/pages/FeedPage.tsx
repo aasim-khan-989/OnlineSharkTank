@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { Link } from "react-router-dom";
 
+// Define the Feed interface
 interface Feed {
   id: number;
   user: {
@@ -14,18 +16,20 @@ interface Feed {
 }
 
 export const FeedPage: React.FC = () => {
+  // Initialize feeds state
   const [feeds, setFeeds] = useState<Feed[]>([]);
   const [clickedFeeds, setClickedFeeds] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     const fetchAllFeeds = async () => {
       try {
+        // Fetch the feeds from the API
         const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/feed/all`);
         console.log("API response:", response.data);
 
         // Filter out private feeds
         const publicFeeds = response.data.filter((feed: Feed) => !feed.isPrivate);
-        setFeeds(publicFeeds);
+        setFeeds(publicFeeds); // Set the feeds state
       } catch (error) {
         console.error("Error fetching all feeds:", error);
       }
@@ -34,6 +38,7 @@ export const FeedPage: React.FC = () => {
     fetchAllFeeds();
   }, []);
 
+  // Helper function to get the YouTube embed URL
   const getEmbedUrl = (url: string | null) => {
     if (!url) return null;
     const videoIdMatch = url.match(
@@ -88,9 +93,16 @@ export const FeedPage: React.FC = () => {
           feeds.map((feed) => {
             const embedUrl = getEmbedUrl(feed.videoUrl);
             return (
-              <div key={feed.id} className="mt-6 border border-gray-300 p-4 rounded-lg shadow-lg transition-transform transform hover:scale-105">
-                {/* Display the user's name on the left side */}
-                <h4 className="text-xl font-bold mb-2 text-gray-800">{feed.user.username || "Anonymous"}</h4>
+              <div
+                key={feed.id}
+                className="mt-6 border border-gray-300 p-4 rounded-lg shadow-lg transition-transform transform hover:scale-105"
+              >
+                {/* Make the user's name clickable */}
+                <h4 className="text-xl font-bold mb-2 text-gray-800">
+                  <Link to={`/user/${feed.user.username}`}>
+                    {feed.user.username || "Anonymous"}
+                  </Link>
+                </h4>
 
                 {embedUrl ? (
                   <iframe
@@ -112,14 +124,22 @@ export const FeedPage: React.FC = () => {
                   <button
                     onClick={() => handleLike(feed.id)}
                     disabled={clickedFeeds.has(feed.id)} // Disable if already clicked
-                    className={`mr-2 ${clickedFeeds.has(feed.id) ? 'bg-blue-300 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'} text-white px-5 py-2 rounded-lg transition duration-300 ease-in-out transform hover:scale-105`}
+                    className={`mr-2 ${
+                      clickedFeeds.has(feed.id)
+                        ? "bg-blue-300 cursor-not-allowed"
+                        : "bg-blue-600 hover:bg-blue-700"
+                    } text-white px-5 py-2 rounded-lg transition duration-300 ease-in-out transform hover:scale-105`}
                   >
                     Like ({feed.likes})
                   </button>
                   <button
                     onClick={() => handleDislike(feed.id)}
                     disabled={clickedFeeds.has(feed.id)} // Disable if already clicked
-                    className={` ${clickedFeeds.has(feed.id) ? 'bg-red-300 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'} text-white px-5 py-2 rounded-lg transition duration-300 ease-in-out transform hover:scale-105`}
+                    className={`${
+                      clickedFeeds.has(feed.id)
+                        ? "bg-red-300 cursor-not-allowed"
+                        : "bg-red-600 hover:bg-red-700"
+                    } text-white px-5 py-2 rounded-lg transition duration-300 ease-in-out transform hover:scale-105`}
                   >
                     Dislike ({feed.dislikes})
                   </button>

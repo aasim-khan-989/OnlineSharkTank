@@ -5,6 +5,7 @@ import authRoutes from './routes/authRoutes';
 import prisma from './config/db';
 import profileRoutes from './routes/profileRoutes'; 
 import feedRoutes from "./routes/feedRoutes"
+import userRoutes from "./routes/userRoutes"
 
 dotenv.config();
 
@@ -33,6 +34,7 @@ prisma.$connect()
 app.use('/api/auth', authRoutes);
 app.use('/api/profile', profileRoutes);
 app.use("/api/feed",feedRoutes)
+app.use("/api/user",userRoutes)
 // Start server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
