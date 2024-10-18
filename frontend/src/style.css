@@ -1,4 +1,9 @@
+/* styles.css (or your main CSS file) */
+@import 'animate.css'; /* Make sure this is the first statement */
+
+/* Tailwind CSS directives */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* Any additional styles can go here */
